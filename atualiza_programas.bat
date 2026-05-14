@@ -24,6 +24,7 @@ echo. >> "%LOGFILE%"
 :: Atualizacao silenciosa
 winget upgrade --all ^
 --silent ^
+--include-unknown ^
 --disable-interactivity ^
 --accept-source-agreements ^
 --accept-package-agreements >> "%LOGFILE%" 2>&1
