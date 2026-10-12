@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  unattend.xml - Windows 11 (amd64) - ingresso no dominio embasanet.ba.gov.br
+
+  USO: o script Aplicar-Win11.cmd substitui @@COMPUTERNAME@@ e grava este arquivo em
+       W:\Windows\Panther\Unattend\Unattend.xml antes do primeiro boot.
+
+  EDITE ANTES DE USAR (procure por "TROCAR"):
+    - Conta de ingresso no dominio (use uma conta de servico com permissao
+      apenas para ingressar computadores na OU de destino).
+    - MachineObjectOU (ou remova a linha para usar o container padrao Computers).
+    - Senha do administrador local.
+    - Idioma: os valores abaixo assumem uma imagem base pt-BR.
+      Se a imagem for en-US, troque UILanguage/SystemLocale/UserLocale.
+
+  IMPORTANTE: nao use o caractere "!" nas senhas (o script em lote nao o processa).
+-->
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+
+  <!-- ============ PASSO SPECIALIZE: nome, fuso, idioma e ingresso no dominio ============ -->
+  <settings pass="specialize">
+
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64"
+               publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS"
+               xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <ComputerName>@@COMPUTERNAME@@</ComputerName>
+      <TimeZone>Bahia Standard Time</TimeZone>
+      <RegisteredOrganization>Embasa</RegisteredOrganization>
+      <RegisteredOwner>TI Embasa</RegisteredOwner>
+    </component>
+
+    <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64"
+               publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS"
+               xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <InputLocale>0416:00010416</InputLocale>
+      <SystemLocale>pt-BR</SystemLocale>
+      <UILanguage>pt-BR</UILanguage>
+      <UserLocale>pt-BR</UserLocale>
+    </component>
+
+    <component name="Microsoft-Windows-UnattendedJoin" processorArchitecture="amd64"
+               publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS"
+               xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Identification>
+        <Credentials>
+          <Domain>embasanet.ba.gov.br</Domain>
+          <Username>TROCAR_CONTA_SERVICO_INGRESSO</Username>
+          <Password>TROCAR_SENHA_CONTA_SERVICO</Password>
+        </Credentials>
+        <JoinDomain>embasanet.ba.gov.br</JoinDomain>
+        <MachineObjectOU>OU=Computadores,DC=embasanet,DC=ba,DC=gov,DC=br</MachineObjectOU>
+      </Identification>
+    </component>
+
+  </settings>
+
+  <!-- ============ PASSO OOBESYSTEM: pula telas, cria admin local, limpeza ============ -->
+  <settings pass="oobeSystem">
+
+    <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64"
+               publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS"
+               xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <InputLocale>0416:00010416</InputLocale>
+      <SystemLocale>pt-BR</SystemLocale>
+      <UILanguage>pt-BR</UILanguage>
+      <UserLocale>pt-BR</UserLocale>
+    </component>
+
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64"
+               publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS"
+               xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <HideLocalAccountScreen>true</HideLocalAccountScreen>
+        <ProtectYourPC>3</ProtectYourPC>
+        <NetworkLocation>Work</NetworkLocation>
+      </OOBE>
+
+      <UserAccounts>
+        <LocalAccounts>
+          <LocalAccount wcm:action="add">
+            <Name>suporte.ti</Name>
+            <DisplayName>Suporte TI</DisplayName>
+            <Group>Administrators</Group>
+            <Password>
+              <Value>TROCAR_SENHA_ADMIN_LOCAL</Value>
+              <PlainText>true</PlainText>
+            </Password>
+          </LocalAccount>
+        </LocalAccounts>
+      </UserAccounts>
+
+      <!-- Executados no primeiro logon: remove o arquivo de resposta (contem credenciais) e atualiza GPO -->
+      <FirstLogonCommands>
+        <SynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Description>Remover arquivos de resposta com credenciais</Description>
+          <CommandLine>cmd /c del /f /q C:\Windows\Panther\Unattend\Unattend.xml C:\Windows\Panther\unattend.xml</CommandLine>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <Description>Atualizar politicas de grupo</Description>
+          <CommandLine>cmd /c gpupdate /force</CommandLine>
+        </SynchronousCommand>
+      </FirstLogonCommands>
+
+    </component>
+  </settings>
+
+</unattend>
