@@ -20,7 +20,10 @@ echo ============================================================
 echo.
 
 set /p "HOST=Digite o hostname do computador: "
+
+:novo_usuario
 set /p "USUARIO=Digite o nome do usuario: "
+
 
 REM --- Remove espacos nas pontas (simples) ---
 for /f "tokens=* delims= " %%a in ("%HOST%") do set "HOST=%%a"
@@ -136,6 +139,9 @@ if %RC% EQU 3 echo [OK] Backup concluido. Arquivos copiados e extras detectados 
 if %RC% GEQ 4 if %RC% LEQ 7 echo [OK] Backup concluido com diferencas/incompatibilidades menores - codigo %RC%.
 echo Log: %LOG%
 echo ============================================================
+echo.
+set /p "MAIS_USUARIOS=Ha mais usuarios para copiar? (S/N): "
+if /i "%MAIS_USUARIOS%"=="S" goto :novo_usuario
 goto :fim
 
 :fim_erro_log
